@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>睡饱的蚂蚁庄园地区查询</title>
+
+  <script src="/assets/jquery-3.5.1.min.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<div class="box" justify-content="center" align-items="center">
+  <h2>睡饱的蚂蚁庄园地区查询</h2>
+  <form id="user_login" action="" justify-content="center" align-items="center">
+    <div class="input-box">
+      <label>输入框</label>
+      <div class="paste">
+        <input type="text" name="" id="address"/>&nbsp;&nbsp;
+        <button type="button" id="paste1" onclick="return check(this.form, 'resolve');">粘贴</button>
+      </div>
+    </div>
+    <div class="btn-box">
+      <div id="CheckMsg" class="msg"></div>
+      <div>
+        <button type="button" id="search" onclick="return check(this.form, 'search');">搜&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;索</button>
+      </div>
+      <div>
+        <button type="button" id="save" onclick="return check(this.form, 'save/v2');">增&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;加</button>
+      </div>
+      <div>
+        <button type="button" id="delete" onclick="return check(this.form, 'delete');">删&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;除</button>
+      </div>
+      <div>
+        <button type="button" id="count" onclick="return check(this.form, 'count');">今日新增</button>
+      </div>
+    </div>
+  </form>
+</div>
+<script type="text/javascript">
+   function check(form, fun) {
+        var address = $("#address");
+        var address = address.val();
+        const type = "gsjy";
+        if ((!address || address == "") && fun != 'count' && fun != 'resolve') {
+            showMsg("请输入地区");
+            form.address.focus();
+            return false;
+        }
+        if (fun == 'resolve') {
+            if (navigator.clipboard) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        // 如果剪贴板有内容，将其复制到文本框
+                        if (text) {
+                            $.ajax({
+                                url: "http://49.234.223.175:10000/api/manor/" + fun,
+                                data: {"address": text, "type": type},
+                                type: "POST",
+                                dataType: "json",
+                                success: function (data) {
+                                    if (data) {
+                                        if (data.status == "200") { //判断返回值，这里根据的业务内容可做调整
+                                            document.getElementById('address').value = data.message;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.log("无法从剪贴板读取内容：" + err);
+                    });
+            } else {
+                
+            }
+        } else {
+            $.ajax({
+                url: "http://49.234.223.175:10000/api/manor/" + fun,
+                data: {"address": address, "type": type},
+                type: "POST",
+                dataType: "json",
+                success: function (data) {
+                    if (data) {
+                        if (data.status == "200") { //判断返回值，这里根据的业务内容可做调整
+                            setTimeout(function () {//做延时以便显示登录状态值
+                                showMsg(data.message);
+                                console.log(data);
+                            }, 100)
+                        } else {
+                            showMsg(data.message);//显示登录失败的原因
+                            return false;
+                        }
+                    }
+                },
+                error: function (data) {
+                    showMsg(data.message);
+                }
+            });
+        }
+    }
+
+    //错误信息提醒
+    function showMsg(msg) {
+        $("#CheckMsg").text(msg);
+    }
+</script>
+</body>
+</html>
